@@ -4,6 +4,8 @@ import { Between, MoreThan, Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import { Article, ArticleStatus } from './entities/article.entity';
 import { Source } from './entities/source.entity';
+import { User } from '../auth/user.entity';
+import { PreferedLanguage } from '../auth/prefered-language.enum';
 
 @Injectable()
 export class ArticlesService {
@@ -75,6 +77,7 @@ export class ArticlesService {
       summary: summary.summary,
       summaryAmharic: summary.summaryAmharic,
       category: summary.category,
+      categoryAmharic: summary.categoryAmharic,
       keyEntities: summary.keyEntities,
       detectedLanguage: summary.detectedLanguage,
       status: ArticleStatus.COMPLETED,
@@ -89,23 +92,59 @@ export class ArticlesService {
     });
   }
 
-  async getCompletedArticles(category?: string, since?: string) {
+  async getCompletedArticles(user: User, category?: string, since?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // start of today midnight
 
     const tomorrow = new Date();
     tomorrow.setHours(23, 59, 59, 999); // end of today
 
-    return this.articleRepository.find({
+    const articles = await this.articleRepository.find({
       where: {
         status: ArticleStatus.COMPLETED,
         pubDate: Between(today, tomorrow),
         ...(category && { category }),
         ...(since && { summarizedAt: MoreThan(new Date(since)) }),
       },
+      select: {
+        id: true,
+        title: true,
+        sourceUrl: true,
+        pubDate: true,
+        category: true,
+        categoryAmharic: true,
+        headline: true,
+        headlineAmharic: true,
+        summary: true,
+        summaryAmharic: true,
+        summarizedAt: true,
+        rawContent: true,
+      },
       order: { pubDate: 'DESC' },
       take: 50,
     });
+
+    // shape response based on language
+    return articles.map((article) => ({
+      id: article.id,
+      title: article.title,
+      sourceUrl: article.sourceUrl,
+      pubDate: article.pubDate,
+      summarizedAt: article.summarizedAt,
+      category:
+        user.preferedLanguage === PreferedLanguage.ENG
+          ? article.category
+          : article.categoryAmharic,
+      headline:
+        user.preferedLanguage === PreferedLanguage.ENG
+          ? article.headline
+          : article.headlineAmharic,
+      summary:
+        user.preferedLanguage === PreferedLanguage.ENG
+          ? article.summary
+          : article.summaryAmharic,
+      raw: article.rawContent,
+    }));
   }
 
   async handleSourceFailure(sourceId: string): Promise<void> {
@@ -135,5 +174,8 @@ export class ArticlesService {
       failureCount: 0,
       isActive: true,
     });
+  }
+  async clearAllSources(): Promise<void> {
+    await this.sourceRepository.query('TRUNCATE TABLE "sources" CASCADE');
   }
 }

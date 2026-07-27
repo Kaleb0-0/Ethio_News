@@ -6,7 +6,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { IngestionModule } from './modules/ingestion/ingestion.module';
-import { SummarizationService } from './modules/summarization/summarization.service';
 import { SummarizationModule } from './modules/summarization/summarization.module';
 import { AuthModule } from './modules/auth/auth.module';
 
@@ -34,6 +33,6 @@ import { AuthModule } from './modules/auth/auth.module';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, SummarizationService],
+  providers: [AppService],
 })
 export class AppModule {}

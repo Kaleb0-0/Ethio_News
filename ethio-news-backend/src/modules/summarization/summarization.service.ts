@@ -28,6 +28,7 @@ export class SummarizationService {
         "summary": ["English bullet 1", "English bullet 2", "English bullet 3"],
         "summaryAmharic": ["አማርኛ ነጥብ 1", "አማርኛ ነጥብ 2", "አማርኛ ነጥብ 3"],
         "category": "Politics | Business | Sports | Health | Technology | Culture",
+        "categoryAmharic": "ፖለቲካ | ቢዝነስ | ስፖርት | ጤና | ቴክኖሎጂ | ባህል",
         "keyEntities": ["names of people, places, or organizations mentioned"],
         "detectedLanguage": "amharic or english",
         "translatedToEnglish": true or false

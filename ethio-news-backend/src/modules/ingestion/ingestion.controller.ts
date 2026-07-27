@@ -1,9 +1,22 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Query,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { IngestionService } from './ingestion.service';
 import { ArticlesService } from '../articles/articles.service';
 import { Language } from '../articles/entities/language.enum';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from '../auth/get-user.decorator';
+import { User } from '../auth/user.entity';
+import { UserRole } from '../auth/user-role.enum';
 
 @Controller('ingestion')
+@UseGuards(AuthGuard())
 export class IngestionController {
   constructor(
     private readonly ingestionService: IngestionService,
@@ -13,39 +26,87 @@ export class IngestionController {
   // POST http://localhost:3000/api/ingestion/seed
   // one time use, only for inserting sources
   @Post('seed')
-  async seedSources() {
-    const defaultSources = [
-      {
-        name: 'Capital Ethiopia',
-        rssUrl: 'https://capitalethiopia.com/feed/',
-        language: Language.ENGLISH,
-      },
-      {
-        name: 'BBC Amharic',
-        rssUrl: 'https://feeds.bbci.co.uk/amharic/rss.xml', // 100% Reliable
-        language: Language.AMHARIC,
-      },
-      {
-        name: 'Borkena',
-        rssUrl: 'https://borkena.com/feed/', // Reliable English Ethiopian News
-        language: Language.ENGLISH,
-      },
-    ];
+  async seedSources(@GetUser() user: User) {
+    if (user.role === UserRole.ADMIN) {
+      const defaultSources = [
+        // English sources
+        {
+          name: 'Addis Fortune',
+          rssUrl: 'https://addisfortune.news/feed/',
+          language: Language.ENGLISH,
+          isActive: true,
+        },
+        {
+          name: 'Ethiopia Insight',
+          rssUrl: 'https://ethiopia-insight.com/feed/',
+          language: Language.ENGLISH,
+          isActive: true,
+        },
+        {
+          name: 'Tadias',
+          rssUrl: 'https://tadias.com/feed/atom/',
+          language: Language.ENGLISH,
+          isActive: true,
+        },
+        {
+          name: 'AllAfrica Ethiopia',
+          rssUrl:
+            'https://allafrica.com/tools/headlines/rdf/ethiopia/headlines.rdf',
+          language: Language.ENGLISH,
+          isActive: true,
+        },
+        {
+          name: 'Ethiopia Nege',
+          rssUrl: 'https://ethiopianege.com/feed/',
+          language: Language.ENGLISH,
+          isActive: true,
+        },
+        {
+          name: 'Maleda Times',
+          rssUrl: 'https://maledatimes.com/feed/',
+          language: Language.ENGLISH,
+          isActive: true,
+        },
+        // Amharic sources
+        {
+          name: 'BBC Amharic',
+          rssUrl: 'https://feeds.bbci.co.uk/amharic/rss.xml',
+          language: Language.AMHARIC,
+          isActive: true,
+        },
+        {
+          name: 'DW Amharic',
+          rssUrl: 'https://rss.dw.com/rdf/rss-eth-amh',
+          language: Language.AMHARIC,
+          isActive: false,
+        },
+      ];
 
-    await this.articlesService.seedSources(defaultSources);
-    return { message: 'Sources seeded successfully!' };
+      await this.articlesService.seedSources(defaultSources);
+      return { message: 'Sources seeded successfully!' };
+    } else {
+      throw new UnauthorizedException();
+    }
   }
 
   // GET http://localhost:3000/api/ingestion/fetch
   @Get('fetch')
-  async fetchNews() {
-    return await this.ingestionService.fetchAndSaveNews();
+  async fetchNews(@GetUser() user: User) {
+    if (user.role === UserRole.ADMIN) {
+      return await this.ingestionService.fetchAndSaveNews();
+    } else {
+      throw new UnauthorizedException();
+    }
   }
 
   // ingestion.controller.ts
   @Post('summarize')
-  async triggerSummarization() {
-    return this.ingestionService.processPendingSummaries();
+  async triggerSummarization(@GetUser() user: User) {
+    if (user.role === UserRole.ADMIN) {
+      return this.ingestionService.processPendingSummaries();
+    } else {
+      throw new UnauthorizedException();
+    }
   }
 
   // @Get('completed')
@@ -56,9 +117,15 @@ export class IngestionController {
   // articles.controller.ts
   @Get()
   async getArticles(
+    @GetUser() user: User,
     @Query('category') category?: string,
-    @Query('since') since?: string, // timestamp of last fetch
+    @Query('since') since?: string,
   ) {
-    return this.articlesService.getCompletedArticles(category, since);
+    return this.articlesService.getCompletedArticles(user, category, since);
+  }
+
+  @Delete('sources')
+  async clearSources() {
+    return this.ingestionService.clearSources();
   }
 }

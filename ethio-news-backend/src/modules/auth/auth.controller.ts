@@ -13,7 +13,7 @@ import { SignInCredentialsDto, SignUpCredentialsDto } from './auth.model';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from './user.entity';
 import { GetUser } from './get-user.decorator';
-import { Language } from './language.enum';
+import { PreferedLanguage } from './prefered-language.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -35,7 +35,7 @@ export class AuthController {
   @Patch(':lang')
   @UseGuards(AuthGuard())
   changeLanguage(
-    @Param('lang', new ParseEnumPipe(Language)) lang: Language,
+    @Param('lang', new ParseEnumPipe(PreferedLanguage)) lang: PreferedLanguage,
     @GetUser() user: User,
   ) {
     return this.authService.changeLanguage(lang, user);

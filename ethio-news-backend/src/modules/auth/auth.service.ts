@@ -13,7 +13,7 @@ import { UserRole } from './user-role.enum';
 import { JwtPayload } from './jwt.interface';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Language } from './language.enum';
+import { PreferedLanguage } from './prefered-language.enum';
 
 @Injectable()
 export class AuthService {
@@ -94,7 +94,7 @@ export class AuthService {
     return { accessToken };
   }
 
-  async changeLanguage(lang: Language, user: User): Promise<void> {
+  async changeLanguage(lang: PreferedLanguage, user: User): Promise<void> {
     user.preferedLanguage = lang;
     await this.userRepository.update(user.username, { preferedLanguage: lang });
   }

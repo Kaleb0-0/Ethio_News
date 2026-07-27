@@ -127,4 +127,9 @@ export class IngestionService {
     );
     return { success: true, newArticlesSaved: newArticlesCount };
   }
+
+  async clearSources() {
+    await this.articlesService.clearAllSources();
+    return { success: true };
+  }
 }
