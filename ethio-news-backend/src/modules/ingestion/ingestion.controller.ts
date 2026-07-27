@@ -87,13 +87,6 @@ export class IngestionController {
           language: Language.AMHARIC,
           isActive: false,
         },
-        {
-          name: 'Google News Ethiopia Amharic',
-          rssUrl:
-            'https://news.google.com/rss/search?q=ኢትዮጵያ&hl=am&gl=ET&ceid=ET:am',
-          language: Language.AMHARIC,
-          isActive: true,
-        },
       ];
 
       await this.articlesService.seedSources(defaultSources);
