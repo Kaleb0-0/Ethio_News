@@ -31,6 +31,13 @@ export class IngestionController {
       const defaultSources = [
         // English sources
         {
+          name: 'Google News Ethiopia',
+          rssUrl:
+            'https://news.google.com/rss/search?q=ethiopia&hl=en-ET&gl=ET&ceid=ET:en',
+          language: Language.ENGLISH,
+          isActive: true,
+        },
+        {
           name: 'Addis Fortune',
           rssUrl: 'https://addisfortune.news/feed/',
           language: Language.ENGLISH,
@@ -79,6 +86,13 @@ export class IngestionController {
           rssUrl: 'https://rss.dw.com/rdf/rss-eth-amh',
           language: Language.AMHARIC,
           isActive: false,
+        },
+        {
+          name: 'Google News Ethiopia Amharic',
+          rssUrl:
+            'https://news.google.com/rss/search?q=ኢትዮጵያ&hl=am&gl=ET&ceid=ET:am',
+          language: Language.AMHARIC,
+          isActive: true,
         },
       ];
 

@@ -37,40 +37,51 @@ export class IngestionService {
     await this.fetchAndSaveNews();
   }
 
-  //auto summarizes every hour
-  @Cron(CronExpression.EVERY_HOUR) // runs every hour automatically NOTE: take user opinion on this
+  //auto summarizes every hour after 5 min
+  @Cron('5 * * * *')
   async processPendingSummaries() {
     this.logger.log('🤖 Processing unsummarized articles...');
-    const pending = await this.articlesService.getUnsummarizedArticles();
-    this.logger.log(`Found ${pending.length} articles to summarize`);
 
-    for (const article of pending) {
-      if (!article.rawContent) {
-        await this.articlesService.markAsFailed(article.id);
-        continue;
+    let totalSummarized = 0;
+
+    while (true) {
+      const pending = await this.articlesService.getUnsummarizedArticles();
+
+      if (pending.length === 0) break; // no more pending, stop
+
+      this.logger.log(`Found ${pending.length} articles to summarize`);
+
+      for (const article of pending) {
+        if (!article.rawContent) {
+          await this.articlesService.markAsFailed(article.id);
+          continue;
+        }
+
+        await this.articleRepository.update(article.id, {
+          status: ArticleStatus.PROCESSING,
+        });
+
+        const result = await this.summarizationService.summarizeArticle(
+          article.rawContent,
+          article.title,
+        );
+
+        if (result) {
+          await this.articlesService.saveSummary(article.id, result);
+          this.logger.log(`✅ Summarized: ${article.title}`);
+          totalSummarized++;
+        } else {
+          await this.articlesService.markAsFailed(article.id);
+          this.logger.warn(`❌ Failed: ${article.title}`);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
-
-      // mark as processing so another cron cycle doesn't pick it up
-      await this.articleRepository.update(article.id, {
-        status: ArticleStatus.PROCESSING,
-      });
-
-      const result = await this.summarizationService.summarizeArticle(
-        article.rawContent,
-        article.title,
-      );
-
-      if (result) {
-        await this.articlesService.saveSummary(article.id, result);
-        this.logger.log(`✅ Summarized: ${article.title}`);
-      } else {
-        await this.articlesService.markAsFailed(article.id);
-        this.logger.warn(`❌ Failed: ${article.title}`);
-      }
-
-      // 1 second delay to respect Ai free tier rate limits
-      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
+
+    this.logger.log(
+      `✅ Summarization cycle complete. Total: ${totalSummarized}`,
+    );
   }
 
   async fetchAndSaveNews() {
