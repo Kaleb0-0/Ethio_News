@@ -13,6 +13,7 @@ import { UserRole } from './user-role.enum';
 import { JwtPayload } from './jwt.interface';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Language } from './language.enum';
 
 @Injectable()
 export class AuthService {
@@ -91,5 +92,10 @@ export class AuthService {
       `Generated JWT Token with payload ${JSON.stringify(payload)}`,
     );
     return { accessToken };
+  }
+
+  async changeLanguage(lang: Language, user: User): Promise<void> {
+    user.preferedLanguage = lang;
+    await this.userRepository.update(user.username, { preferedLanguage: lang });
   }
 }

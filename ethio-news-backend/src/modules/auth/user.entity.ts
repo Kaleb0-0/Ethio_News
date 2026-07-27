@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './user-role.enum';
+import { Language } from './language.enum';
 
 @Entity()
 export class User {
@@ -23,4 +24,7 @@ export class User {
 
   @Column()
   role!: UserRole;
+
+  @Column({ default: Language.ENG })
+  preferedLanguage!: Language;
 }
