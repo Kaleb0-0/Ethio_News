@@ -42,7 +42,34 @@ export class SummarizationService {
       });
 
       const text = completion.choices[0].message.content || '';
-      return JSON.parse(text);
+      const parsed = JSON.parse(text);
+
+      // split the pipe-separated string into an array
+      const splitCategory = (value: any): string[] => {
+        if (Array.isArray(value)) return value;
+        if (typeof value === 'string') {
+          return value
+            .split('|')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+        return [];
+      };
+
+      return {
+        ...parsed,
+        category: splitCategory(parsed.category),
+        categoryAmharic: splitCategory(parsed.categoryAmharic),
+        summary: Array.isArray(parsed.summary)
+          ? parsed.summary
+          : [parsed.summary].filter(Boolean),
+        summaryAmharic: Array.isArray(parsed.summaryAmharic)
+          ? parsed.summaryAmharic
+          : [parsed.summaryAmharic].filter(Boolean),
+        keyEntities: Array.isArray(parsed.keyEntities)
+          ? parsed.keyEntities
+          : [parsed.keyEntities].filter(Boolean),
+      };
     } catch (error: any) {
       this.logger.error(`Summarization failed: ${error.message}`);
       return null;

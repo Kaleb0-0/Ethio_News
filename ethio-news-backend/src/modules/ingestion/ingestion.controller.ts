@@ -31,11 +31,12 @@ export class IngestionController {
       const defaultSources = [
         // English sources
         {
+          // too much short data not enough details
           name: 'Google News Ethiopia',
           rssUrl:
             'https://news.google.com/rss/search?q=ethiopia&hl=en-ET&gl=ET&ceid=ET:en',
           language: Language.ENGLISH,
-          isActive: true,
+          isActive: false,
         },
         {
           name: 'Addis Fortune',

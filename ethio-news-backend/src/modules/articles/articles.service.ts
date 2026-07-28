@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, MoreThan, Repository } from 'typeorm';
+import { ArrayContains, Between, MoreThan, Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import { Article, ArticleStatus } from './entities/article.entity';
 import { Source } from './entities/source.entity';
@@ -63,9 +63,17 @@ export class ArticlesService {
 
   // get articles waiting to be summarized
   async getUnsummarizedArticles(): Promise<Article[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date();
+    tomorrow.setHours(23, 59, 59, 999);
     return this.articleRepository.find({
-      where: { status: ArticleStatus.PENDING },
-      take: 10,
+      where: {
+        status: ArticleStatus.PENDING,
+        pubDate: Between(today, tomorrow),
+      },
+      take: 50,
     });
   }
 
@@ -103,7 +111,7 @@ export class ArticlesService {
       where: {
         status: ArticleStatus.COMPLETED,
         pubDate: Between(today, tomorrow),
-        ...(category && { category }),
+        ...(category && { category: ArrayContains([category]) }),
         ...(since && { summarizedAt: MoreThan(new Date(since)) }),
       },
       select: {

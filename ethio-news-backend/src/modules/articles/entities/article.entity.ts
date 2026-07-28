@@ -59,11 +59,11 @@ export class Article {
   @Column({ type: 'text', array: true, nullable: true })
   summaryAmharic!: string[];
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  category!: string;
+  @Column({ type: 'text', array: true, nullable: true })
+  category!: string[];
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  categoryAmharic!: string;
+  @Column({ type: 'text', array: true, nullable: true })
+  categoryAmharic!: string[];
 
   @Column({ type: 'text', array: true, nullable: true })
   keyEntities!: string[];
