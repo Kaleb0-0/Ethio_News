@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Query,
+  Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -14,18 +15,25 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../auth/user.entity';
 import { UserRole } from '../auth/user-role.enum';
+import { AuthService } from '../auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
+import { PreferedLanguage } from '../auth/prefered-language.enum';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('ingestion')
-@UseGuards(AuthGuard())
 export class IngestionController {
   constructor(
     private readonly ingestionService: IngestionService,
     private readonly articlesService: ArticlesService,
+    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   // POST http://localhost:3000/api/ingestion/seed
   // one time use, only for inserting sources
   @Post('seed')
+  @UseGuards(AuthGuard())
   async seedSources(@GetUser() user: User) {
     if (user.role === UserRole.ADMIN) {
       const defaultSources = [
@@ -99,6 +107,7 @@ export class IngestionController {
 
   // GET http://localhost:3000/api/ingestion/fetch
   @Get('fetch')
+  @UseGuards(AuthGuard())
   async fetchNews(@GetUser() user: User) {
     if (user.role === UserRole.ADMIN) {
       return await this.ingestionService.fetchAndSaveNews();
@@ -109,6 +118,7 @@ export class IngestionController {
 
   // ingestion.controller.ts
   @Post('summarize')
+  @UseGuards(AuthGuard())
   async triggerSummarization(@GetUser() user: User) {
     if (user.role === UserRole.ADMIN) {
       return this.ingestionService.processPendingSummaries();
@@ -125,14 +135,32 @@ export class IngestionController {
   // articles.controller.ts
   @Get()
   async getArticles(
-    @GetUser() user: User,
+    // @GetUser() user: User,
     @Query('category') category?: string,
     @Query('since') since?: string,
+    @Query('lang') lang?: PreferedLanguage, // fallback for unauthenticated users
+    @Req() req?: any,
   ) {
-    return this.articlesService.getCompletedArticles(user, category, since);
+    let language: PreferedLanguage = lang || PreferedLanguage.ENG; // default to English
+
+    // if user is logged in, use their preferred language
+    try {
+      const token = req?.headers?.authorization?.split(' ')[1];
+      if (token) {
+        const userLang = await this.authService.getLang(token);
+
+        if (userLang) language = userLang;
+      }
+    } catch (err: any) {
+      // not logged in, use the lang param or default
+      console.log('ERROR:', err.message);
+    }
+
+    return this.articlesService.getCompletedArticles(language, category, since);
   }
 
   @Delete('sources')
+  @UseGuards(AuthGuard())
   async clearSources() {
     return this.ingestionService.clearSources();
   }

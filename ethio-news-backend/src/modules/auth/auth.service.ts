@@ -14,6 +14,7 @@ import { JwtPayload } from './jwt.interface';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PreferedLanguage } from './prefered-language.enum';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async signUp(signUpCredentialsDto: SignUpCredentialsDto): Promise<void> {
@@ -97,5 +99,18 @@ export class AuthService {
   async changeLanguage(lang: PreferedLanguage, user: User): Promise<void> {
     user.preferedLanguage = lang;
     await this.userRepository.update(user.username, { preferedLanguage: lang });
+  }
+
+  async findByEmail(email: string) {
+    const user = this.userRepository.findOne({ where: { email } });
+    return user;
+  }
+
+  async getLang(token: any) {
+    const decoded = await this.jwtService.verify(token, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+    });
+    const user = await this.findByEmail(decoded.email);
+    return user?.preferedLanguage;
   }
 }

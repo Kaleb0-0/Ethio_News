@@ -100,7 +100,11 @@ export class ArticlesService {
     });
   }
 
-  async getCompletedArticles(user: User, category?: string, since?: string) {
+  async getCompletedArticles(
+    language: PreferedLanguage,
+    category?: string,
+    since?: string,
+  ) {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // start of today midnight
 
@@ -127,6 +131,7 @@ export class ArticlesService {
         summaryAmharic: true,
         summarizedAt: true,
         rawContent: true,
+        imageUrl: true,
       },
       order: { pubDate: 'DESC' },
       take: 50,
@@ -140,18 +145,19 @@ export class ArticlesService {
       pubDate: article.pubDate,
       summarizedAt: article.summarizedAt,
       category:
-        user.preferedLanguage === PreferedLanguage.ENG
+        language === PreferedLanguage.ENG
           ? article.category
           : article.categoryAmharic,
       headline:
-        user.preferedLanguage === PreferedLanguage.ENG
+        language === PreferedLanguage.ENG
           ? article.headline
           : article.headlineAmharic,
       summary:
-        user.preferedLanguage === PreferedLanguage.ENG
+        language === PreferedLanguage.ENG
           ? article.summary
           : article.summaryAmharic,
       raw: article.rawContent,
+      imageUrl: article.imageUrl,
     }));
   }
 

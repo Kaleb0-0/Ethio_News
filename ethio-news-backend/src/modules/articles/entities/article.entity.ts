@@ -45,6 +45,9 @@ export class Article {
   @Column({ type: 'enum', enum: ArticleStatus, default: ArticleStatus.PENDING })
   status!: ArticleStatus;
 
+  @Column({ type: 'text', nullable: true })
+  imageUrl!: string;
+
   // --- Summary fields (filled after Ai processes the article) ---
 
   @Column({ type: 'varchar', length: 500, nullable: true })

@@ -27,6 +27,13 @@ export class IngestionService {
           'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       },
       timeout: 10000,
+      customFields: {
+        item: [
+          ['media:content', 'mediaContent'],
+          ['media:thumbnail', 'mediaThumbnail'],
+          'enclosure',
+        ],
+      },
     });
   }
 
@@ -113,6 +120,11 @@ export class IngestionService {
 
           if (!isToday) continue; // skip old articles
 
+          const imageUrl =
+            (item as any).mediaContent?.$.url ||
+            (item as any).mediaThumbnail?.$.url ||
+            item.enclosure?.url ||
+            null;
           // Check for duplicates using our fast MD5 hash!
           const exists = await this.articlesService.articleExists(sourceUrl);
           if (!exists) {
@@ -123,6 +135,7 @@ export class IngestionService {
               sourceId: source.id,
               language: source.language,
               rawContent: item.contentSnippet || item.content || '',
+              imageUrl: imageUrl,
             });
             newArticlesCount++;
           }

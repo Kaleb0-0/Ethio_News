@@ -5,9 +5,14 @@ import { Article } from './entities/article.entity';
 import { ArticlesService } from './articles.service';
 import { User } from '../auth/user.entity';
 import { AuthModule } from '../auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Source, Article, User]), AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([Source, Article, User]),
+    AuthModule,
+    JwtModule,
+  ],
   providers: [ArticlesService],
   exports: [ArticlesService, TypeOrmModule],
 })
