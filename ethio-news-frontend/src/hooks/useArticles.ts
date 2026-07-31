@@ -1,10 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchArticles } from "../services/api";
-import { useRef } from "react";
 
 export const useArticles = (category?: string, lang?: "eng" | "amh") => {
-  const lastFetchedAt = useRef<string | undefined>(undefined);
   const queryClient = useQueryClient();
+  const queryKey = ["articles", category, lang] as const;
 
   const getMsUntilNextRefetch = () => {
     const now = new Date();
@@ -15,29 +14,23 @@ export const useArticles = (category?: string, lang?: "eng" | "amh") => {
   };
 
   const query = useQuery({
-    queryKey: ["articles", category, lang],
-    queryFn: async () => {
-      const data = await fetchArticles({
+    queryKey,
+    queryFn: () =>
+      fetchArticles({
         category,
         lang,
-        since: lastFetchedAt.current,
-      });
-      lastFetchedAt.current = new Date().toISOString();
-      return data;
-    },
+      }),
+    staleTime: 60_000, //this would need to change for the since function
+    refetchOnWindowFocus: false,
     refetchInterval: getMsUntilNextRefetch,
-    staleTime: 60 * 60 * 1000,
-    refetchOnWindowFocus: false, // don't refetch just from switching tabs
   });
 
-  // manual refresh — resets since so it fetches everything fresh
   const refresh = async () => {
-    lastFetchedAt.current = undefined; // reset so we get all today's articles
-    await queryClient.invalidateQueries({ queryKey: ["articles", category, lang] });
+    await queryClient.invalidateQueries({ queryKey, exact: true });
   };
 
   return {
     ...query,
-    refresh, // expose this to the UI for pull-to-refresh or refresh button
+    refresh,
   };
 };

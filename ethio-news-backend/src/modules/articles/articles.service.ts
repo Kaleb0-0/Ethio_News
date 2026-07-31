@@ -49,12 +49,10 @@ export class ArticlesService {
   // Overwrite your existing seedSources method with this:
   // one time use or if you add new sources
   async seedSources(sourcesData: Partial<Source>[]): Promise<void> {
-    for (const source of sourcesData) {
-      await this.sourceRepository.upsert(
-        source,
-        { conflictPaths: ['rssUrl'] }, // if rssUrl already exists, update it instead of inserting
-      );
-    }
+    await this.sourceRepository.upsert(
+      sourcesData, // pass the whole array at once
+      { conflictPaths: ['rssUrl'] },
+    );
   }
 
   async getActiveSources(): Promise<Source[]> {
