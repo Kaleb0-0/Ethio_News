@@ -1,5 +1,8 @@
 import { ChevronRight, Globe, LogOut, Bell, BellOff } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { signOut } from "../../services/api";
+import { jwtDecode } from "jwt-decode";
 
 interface UserDropdownProps {
   onClose: () => void;
@@ -23,15 +26,35 @@ const UserDropdown = ({ onClose, lang, onLangChange }: UserDropdownProps) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    signOut(); // clears localStorage token
+    onClose();
+    navigate("/");
+  };
+
+  const token = localStorage.getItem("token");
+  let email = "";
+  try {
+    if (token) {
+      const decoded: any = jwtDecode(token);
+      email = decoded.email || "";
+    }
+  } catch {
+    email = "";
+  }
+
   return (
     <div ref={ref} className="absolute right-0 mt-2 w-52 bg-[#1e293b] border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden">
       {/* Email */}
       <div className="px-4 py-3 border-b border-slate-700">
         <p className="text-slate-400 text-xs">Signed in as</p>
-        <p className="text-white text-sm font-medium truncate">user@email.com</p>
+        <p className="text-white text-sm font-medium truncate">{email}</p>
+        {/* this should be either username or email*/}
       </div>
 
-      {/* Language submenu */}
+      {/*Language submenu
       <div className="relative">
         <button
           onClick={() => {
@@ -71,7 +94,7 @@ const UserDropdown = ({ onClose, lang, onLangChange }: UserDropdownProps) => {
             </button>
           </div>
         )}
-      </div>
+      </div>*/}
 
       {/* Notifications submenu */}
       <div className="relative">
@@ -103,7 +126,7 @@ const UserDropdown = ({ onClose, lang, onLangChange }: UserDropdownProps) => {
 
       {/* Sign out */}
       <div className="border-t border-slate-700">
-        <button className="w-full flex items-center gap-2 px-4 py-2.5 text-red-400 hover:bg-slate-700 hover:text-red-300 transition text-sm">
+        <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-4 py-2.5 text-red-400 hover:bg-slate-700 hover:text-red-300 transition text-sm">
           <LogOut size={15} />
           Sign Out
         </button>

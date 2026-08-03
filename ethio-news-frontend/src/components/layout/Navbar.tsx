@@ -2,6 +2,7 @@ import { Bell, User } from "lucide-react";
 import { useState } from "react";
 import UserDropdown from "../ui/UserDropdown";
 import { Link } from "react-router-dom";
+import { updateLanguage } from "../../services/api";
 
 interface NavbarProps {
   isLoggedIn: boolean;
@@ -24,8 +25,21 @@ const Navbar = ({ isLoggedIn, onSignInClick, lang, onLangChange }: NavbarProps) 
       <div className="flex items-center gap-4">
         {/* Language toggle — always visible */}
         <button
-          onClick={() => onLangChange(lang === "eng" ? "amh" : "eng")}
-          className="text-sm px-3 py-1 rounded-full border border-slate-600 text-slate-300 hover:border-[#38bdf8] hover:text-[#38bdf8] transition"
+          onClick={async () => {
+            const newLang = lang === "eng" ? "amh" : "eng";
+            onLangChange(newLang);
+
+            // if logged in, save to DB
+            const token = localStorage.getItem("token");
+            if (token) {
+              try {
+                await updateLanguage(newLang);
+              } catch {
+                // silently fail
+              }
+            }
+          }}
+          className="text-sm text-slate-300 hover:text-[#38bdf8] transition"
         >
           {lang === "eng" ? "🇪🇹 አማርኛ" : "🇬🇧 English"}
         </button>

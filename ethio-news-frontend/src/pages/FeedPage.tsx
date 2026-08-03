@@ -4,6 +4,7 @@ import CategoryTabs from "../components/news/CategoryTabs";
 import ArticleCard from "../components/news/ArticleCard";
 import { useArticles } from "../hooks/useArticles";
 import { type Article } from "../types/articles";
+import { toEthiopianDate } from "../util/ethiopianDate";
 
 const FeedPage = () => {
   const [category, setCategory] = useState<string | undefined>(undefined);
@@ -25,20 +26,22 @@ const FeedPage = () => {
         {/* Header row */}
         <div className="mb-4">
           <h1 className="text-xl font-bold text-white">
-            Today's News
+            {lang === "eng" ? "Today's News" : "የዛሬ ዜናዎች"}
             <span className="text-slate-500 text-sm font-normal ml-2">
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
+              {lang === "eng"
+                ? new Date().toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : toEthiopianDate(new Date())}
             </span>
           </h1>
         </div>
 
         {/* Category tabs */}
         <div className="mb-6">
-          <CategoryTabs onCategoryChange={setCategory} />
+          <CategoryTabs onCategoryChange={setCategory} lang={lang} />
         </div>
 
         {/* Loading state */}
@@ -61,12 +64,18 @@ const FeedPage = () => {
         {/* Empty state */}
         {!isLoading && !error && articles?.length === 0 && <div className="text-center py-20 text-slate-500">No articles found for today yet. Check back soon.</div>}
 
-        {/* Articles grid */}
+        {/* Articles — AP News style */}
         {!isLoading && articles && articles.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {articles.map((article: Article) => (
-              <ArticleCard key={article.id} article={article} onClick={setSelectedArticle} />
-            ))}
+          <div className="max-w-4xl">
+            {/* Featured article — first one */}
+            <ArticleCard key={articles[0].id} article={articles[0]} onClick={setSelectedArticle} featured={true} lang={lang} />
+
+            {/* Rest of articles — list style */}
+            <div className="divide-y divide-slate-800">
+              {articles.slice(1).map((article: Article) => (
+                <ArticleCard key={article.id} article={article} onClick={setSelectedArticle} />
+              ))}
+            </div>
           </div>
         )}
       </main>

@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchArticles } from "../services/api";
+import { useEffect } from "react";
 
 export const useArticles = (category?: string, lang?: "eng" | "amh") => {
   const queryClient = useQueryClient();
@@ -12,6 +13,10 @@ export const useArticles = (category?: string, lang?: "eng" | "amh") => {
     const minutesUntilNext = minutes < 10 ? 10 - minutes : 70 - minutes;
     return (minutesUntilNext * 60 - seconds) * 1000;
   };
+
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey, exact: true });
+  }, [category, lang]);
 
   const query = useQuery({
     queryKey,
