@@ -1,8 +1,9 @@
-import { Bell, User } from "lucide-react";
-import { useState } from "react";
+import { Bell, BellOff, User } from "lucide-react";
+import { useEffect, useState } from "react";
 import UserDropdown from "../ui/UserDropdown";
 import { Link } from "react-router-dom";
-import { updateLanguage } from "../../services/api";
+import { getMe, toggleNotifications, updateLanguage } from "../../services/api";
+import { subscribeToPush, unsubscribeFromPush } from "../../services/notifications";
 
 interface NavbarProps {
   isLoggedIn: boolean;
@@ -13,6 +14,36 @@ interface NavbarProps {
 
 const Navbar = ({ isLoggedIn, onSignInClick, lang, onLangChange }: NavbarProps) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      getMe()
+        .then((user) => {
+          setNotificationsEnabled(user.notificationsEnabled);
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  const handleBellClick = async () => {
+    if (!isLoggedIn) return;
+
+    try {
+      const result = await toggleNotifications();
+      setNotificationsEnabled(result.notificationsEnabled);
+
+      if (result.notificationsEnabled) {
+        await subscribeToPush();
+      } else {
+        await unsubscribeFromPush();
+      }
+    } catch (err) {
+      console.error("Bell toggle failed:", err);
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 bg-[#0f172a] border-b border-slate-700 px-4 py-3 flex items-center justify-between">
       {/* Logo */}
@@ -46,8 +77,12 @@ const Navbar = ({ isLoggedIn, onSignInClick, lang, onLangChange }: NavbarProps) 
 
         {isLoggedIn ? (
           <>
-            <button className="text-slate-300 hover:text-[#38bdf8] transition">
-              <Bell size={20} />
+            <button
+              onClick={handleBellClick}
+              className={`transition ${notificationsEnabled ? "text-[#38bdf8]" : "text-slate-500"} hover:text-[#38bdf8]`}
+              title={notificationsEnabled ? "Notifications on" : "Notifications off"}
+            >
+              {notificationsEnabled ? <Bell size={20} /> : <BellOff size={20} />}
             </button>
             <div className="relative">
               <button onClick={() => setDropdownOpen(!dropdownOpen)} className="text-slate-300 hover:text-[#38bdf8] transition">

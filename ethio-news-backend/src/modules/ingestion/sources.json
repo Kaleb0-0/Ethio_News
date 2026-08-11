@@ -1,0 +1,111 @@
+{
+  "rssSources": [
+    {
+      "name": "Google News Ethiopia",
+      "rssUrl": "https://news.google.com/rss/search?q=ethiopia&hl=en-ET&gl=ET&ceid=ET:en",
+      "language": "ENGLISH",
+      "isActive": false,
+      "type": "rss"
+    },
+    {
+      "name": "Addis Fortune",
+      "rssUrl": "https://addisfortune.news/feed/",
+      "language": "ENGLISH",
+      "isActive": true,
+      "type": "rss"
+    },
+    {
+      "name": "Ethiopia Insight",
+      "rssUrl": "https://ethiopia-insight.com/feed/",
+      "language": "ENGLISH",
+      "isActive": true,
+      "type": "rss"
+    },
+    {
+      "name": "Tadias",
+      "rssUrl": "https://tadias.com/feed/atom/",
+      "language": "ENGLISH",
+      "isActive": true,
+      "type": "rss"
+    },
+    {
+      "name": "AllAfrica Ethiopia",
+      "rssUrl": "https://allafrica.com/tools/headlines/rdf/ethiopia/headlines.rdf",
+      "language": "ENGLISH",
+      "isActive": true,
+      "type": "rss"
+    },
+    {
+      "name": "Ethiopia Nege",
+      "rssUrl": "https://ethiopianege.com/feed/",
+      "language": "ENGLISH",
+      "isActive": true,
+      "type": "rss"
+    },
+    {
+      "name": "Maleda Times",
+      "rssUrl": "https://maledatimes.com/feed/",
+      "language": "ENGLISH",
+      "isActive": true,
+      "type": "rss"
+    },
+    {
+      "name": "BBC Amharic",
+      "rssUrl": "https://feeds.bbci.co.uk/amharic/rss.xml",
+      "language": "AMHARIC",
+      "isActive": true,
+      "type": "rss"
+    },
+    {
+      "name": "DW Amharic",
+      "rssUrl": "https://rss.dw.com/rdf/rss-eth-amh",
+      "language": "AMHARIC",
+      "isActive": false,
+      "type": "rss"
+    }
+  ],
+  "apiSources": [
+    {
+      "name": "NewsAPI.org",
+      "website": "https://newsapi.org",
+      "free_tier": "100 requests per day (developer/non-commercial use)",
+      "endpoint_example": "https://newsapi.org/v2/top-headlines?country=us&apiKey=YOUR_API_KEY",
+      "requires_credit_card": false
+    },
+    {
+      "name": "GNews API",
+      "website": "https://gnews.io",
+      "free_tier": "100 requests per day",
+      "endpoint_example": "https://gnews.io/api/v4/search?q=example&apikey=YOUR_API_KEY",
+      "requires_credit_card": false
+    },
+    {
+      "name": "Currents API",
+      "website": "https://currentsapi.services",
+      "free_tier": "1,000 requests per day",
+      "endpoint_example": "https://api.currentsapi.services/v1/latest-news?apiKey=YOUR_API_KEY",
+      "requires_credit_card": false
+    },
+    {
+      "name": "NewsData.io",
+      "website": "https://newsdata.io",
+      "free_tier": "200 credits per day",
+      "endpoint_example": "https://newsdata.io/api/1/news?apikey=YOUR_API_KEY&q=pegasus",
+      "requires_credit_card": false
+    },
+    {
+      "name": "Mediastack",
+      "website": "https://mediastack.com",
+      "free_tier": "100 requests per month",
+      "endpoint_example": "http://api.mediastack.com/v1/news?access_key=YOUR_API_KEY",
+      "requires_credit_card": false
+    },
+    {
+      "name": "The Guardian Open Platform",
+      "website": "https://open-platform.theguardian.com",
+      "free_tier": "5,000 requests per day (non-commercial)",
+      "endpoint_example": "https://content.guardianapis.com/search?api-key=YOUR_API_KEY",
+      "requires_credit_card": false
+    }
+  ]
+}

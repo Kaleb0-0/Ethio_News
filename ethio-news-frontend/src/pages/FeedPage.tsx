@@ -1,29 +1,55 @@
-import { useState } from "react";
+// FeedPage.tsx - just handles lang loading
+
+import { useEffect, useRef, useState } from "react";
+import type { Article } from "../types/articles";
+import { useArticles } from "../hooks/useArticles";
 import Navbar from "../components/layout/Navbar";
+import { toEthiopianDate } from "../util/ethiopianDate";
 import CategoryTabs from "../components/news/CategoryTabs";
 import ArticleCard from "../components/news/ArticleCard";
-import { useArticles } from "../hooks/useArticles";
-import { type Article } from "../types/articles";
-import { toEthiopianDate } from "../util/ethiopianDate";
+import { getMe } from "../services/api";
 
 const FeedPage = () => {
+  const [lang, setLang] = useState<"eng" | "amh" | null>(null);
+  const langLoadedRef = useRef(false);
+  const isLoggedIn = !!localStorage.getItem("token");
+
+  useEffect(() => {
+    if (langLoadedRef.current) return;
+    langLoadedRef.current = true;
+
+    const token = localStorage.getItem("token");
+    if (token) {
+      getMe()
+        .then((user) => setLang(user.preferedLanguage || "eng"))
+        .catch(() => setLang("eng"));
+    } else {
+      setLang("eng");
+    }
+  }, []);
+
+  if (lang === null) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#38bdf8]" />
+      </div>
+    );
+  }
+
+  return <FeedContent lang={lang} setLang={setLang} isLoggedIn={isLoggedIn} />;
+};
+
+// FeedContent — only renders after lang is known
+const FeedContent = ({ lang, setLang, isLoggedIn }: { lang: "eng" | "amh"; setLang: (lang: "eng" | "amh") => void; isLoggedIn: boolean }) => {
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-
-  // check if user is logged in
-  const isLoggedIn = !!localStorage.getItem("token");
-  const [lang, setLang] = useState<"eng" | "amh">("eng");
-
   const { data: articles, isLoading, error, refresh } = useArticles(category, lang);
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
-      {/* Navbar */}
       <Navbar isLoggedIn={isLoggedIn} onSignInClick={() => (window.location.href = "/signin")} lang={lang} onLangChange={setLang} />
 
-      {/* Main content */}
       <main className="max-w-6xl mx-auto px-4 py-6">
-        {/* Header row */}
         <div className="mb-4">
           <h1 className="text-xl font-bold text-white">
             {lang === "eng" ? "Today's News" : "የዛሬ ዜናዎች"}
@@ -39,19 +65,16 @@ const FeedPage = () => {
           </h1>
         </div>
 
-        {/* Category tabs */}
         <div className="mb-6">
           <CategoryTabs onCategoryChange={setCategory} lang={lang} />
         </div>
 
-        {/* Loading state */}
         {isLoading && (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#38bdf8]" />
           </div>
         )}
 
-        {/* Error state */}
         {error && (
           <div className="text-center py-20 text-red-400">
             Failed to load articles.{" "}
@@ -61,19 +84,19 @@ const FeedPage = () => {
           </div>
         )}
 
-        {/* Empty state */}
         {!isLoading && !error && articles?.length === 0 && <div className="text-center py-20 text-slate-500">No articles found for today yet. Check back soon.</div>}
 
-        {/* Articles — AP News style */}
         {!isLoading && articles && articles.length > 0 && (
           <div className="max-w-4xl">
-            {/* Featured article — first one */}
             <ArticleCard key={articles[0].id} article={articles[0]} onClick={setSelectedArticle} featured={true} lang={lang} />
-
-            {/* Rest of articles — list style */}
             <div className="divide-y divide-slate-800">
               {articles.slice(1).map((article: Article) => (
-                <ArticleCard key={article.id} article={article} onClick={setSelectedArticle} />
+                <ArticleCard
+                  key={article.id}
+                  article={article}
+                  onClick={setSelectedArticle}
+                  lang={lang} // ← was missing before
+                />
               ))}
             </div>
           </div>
@@ -84,12 +107,10 @@ const FeedPage = () => {
       {selectedArticle && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setSelectedArticle(null)}>
           <div className="bg-[#1e293b] rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 border border-slate-700" onClick={(e) => e.stopPropagation()}>
-            {/* Close button */}
             <button onClick={() => setSelectedArticle(null)} className="float-right text-slate-400 hover:text-white text-xl">
               ✕
             </button>
 
-            {/* Categories */}
             <div className="flex gap-2 flex-wrap mb-3">
               {selectedArticle.category?.map((cat: string) => (
                 <span key={cat} className="text-xs bg-[#0f172a] text-[#38bdf8] px-2 py-0.5 rounded-full border border-slate-700">
@@ -98,13 +119,10 @@ const FeedPage = () => {
               ))}
             </div>
 
-            {/* Headline */}
             <h2 className="text-white text-xl font-bold mb-4">{selectedArticle.headline || selectedArticle.title}</h2>
 
-            {/* Image */}
             {selectedArticle.imageUrl && <img src={selectedArticle.imageUrl} alt={selectedArticle.headline} className="w-full h-52 object-cover rounded-xl mb-4" />}
 
-            {/* Summary */}
             <div className="mb-6">
               <h3 className="text-[#38bdf8] text-sm font-semibold mb-2">Summary</h3>
               <ul className="space-y-2">
@@ -117,13 +135,11 @@ const FeedPage = () => {
               </ul>
             </div>
 
-            {/* Raw content */}
             <details className="mb-6">
               <summary className="text-slate-500 text-sm cursor-pointer hover:text-slate-300 transition">Show original content</summary>
               <p className="mt-3 text-slate-400 text-sm leading-relaxed border-t border-slate-700 pt-3">{selectedArticle.raw}</p>
             </details>
 
-            {/* Read original button */}
             <a
               href={selectedArticle.sourceUrl}
               target="_blank"

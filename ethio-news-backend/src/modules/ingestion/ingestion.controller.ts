@@ -8,9 +8,10 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import * as sourcesData from './sources.json';
 import { IngestionService } from './ingestion.service';
 import { ArticlesService } from '../articles/articles.service';
-import { Language } from '../articles/entities/language.enum';
+import { Language, Type } from '../articles/entities/language.enum';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../auth/user.entity';
@@ -36,67 +37,11 @@ export class IngestionController {
   @UseGuards(AuthGuard())
   async seedSources(@GetUser() user: User) {
     if (user.role === UserRole.ADMIN) {
-      const defaultSources = [
-        // English sources
-        {
-          // too much short data not enough details
-          name: 'Google News Ethiopia',
-          rssUrl:
-            'https://news.google.com/rss/search?q=ethiopia&hl=en-ET&gl=ET&ceid=ET:en',
-          language: Language.ENGLISH,
-          isActive: false,
-        },
-        {
-          name: 'Addis Fortune',
-          rssUrl: 'https://addisfortune.news/feed/',
-          language: Language.ENGLISH,
-          isActive: true,
-        },
-        {
-          name: 'Ethiopia Insight',
-          rssUrl: 'https://ethiopia-insight.com/feed/',
-          language: Language.ENGLISH,
-          isActive: true,
-        },
-        {
-          name: 'Tadias',
-          rssUrl: 'https://tadias.com/feed/atom/',
-          language: Language.ENGLISH,
-          isActive: true,
-        },
-        {
-          name: 'AllAfrica Ethiopia',
-          rssUrl:
-            'https://allafrica.com/tools/headlines/rdf/ethiopia/headlines.rdf',
-          language: Language.ENGLISH,
-          isActive: true,
-        },
-        {
-          name: 'Ethiopia Nege',
-          rssUrl: 'https://ethiopianege.com/feed/',
-          language: Language.ENGLISH,
-          isActive: true,
-        },
-        {
-          name: 'Maleda Times',
-          rssUrl: 'https://maledatimes.com/feed/',
-          language: Language.ENGLISH,
-          isActive: true,
-        },
-        // Amharic sources
-        {
-          name: 'BBC Amharic',
-          rssUrl: 'https://feeds.bbci.co.uk/amharic/rss.xml',
-          language: Language.AMHARIC,
-          isActive: true,
-        },
-        {
-          name: 'DW Amharic',
-          rssUrl: 'https://rss.dw.com/rdf/rss-eth-amh',
-          language: Language.AMHARIC,
-          isActive: false,
-        },
-      ];
+      const defaultSources = sourcesData.rssSources.map((source) => ({
+        ...source,
+        language: Language[source.language as keyof typeof Language],
+        type: Type[source.type as keyof typeof Type],
+      }));
 
       await this.articlesService.seedSources(defaultSources);
       return { message: 'Sources seeded successfully!' };
@@ -143,17 +88,19 @@ export class IngestionController {
   ) {
     let language: PreferedLanguage = lang || PreferedLanguage.ENG; // default to English
 
-    // if user is logged in, use their preferred language
-    try {
-      const token = req?.headers?.authorization?.split(' ')[1];
-      if (token) {
-        const userLang = await this.authService.getLang(token);
+    // if user is logged in and no explicit lang param was provided, use their preferred language
+    if (!lang) {
+      try {
+        const token = req?.headers?.authorization?.split(' ')[1];
+        if (token) {
+          const userLang = await this.authService.getLang(token);
 
-        if (userLang) language = userLang;
+          if (userLang) language = userLang;
+        }
+      } catch (err: any) {
+        // not logged in, use the lang param or default
+        console.log('ERROR:', err.message);
       }
-    } catch (err: any) {
-      // not logged in, use the lang param or default
-      console.log('ERROR:', err.message);
     }
 
     return this.articlesService.getCompletedArticles(language, category, since);

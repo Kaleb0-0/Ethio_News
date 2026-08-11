@@ -6,7 +6,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Article } from './article.entity';
-import { Language } from './language.enum';
+import { Language, Type } from './language.enum';
 
 @Entity('sources')
 export class Source {
@@ -21,6 +21,9 @@ export class Source {
 
   @Column({ type: 'enum', enum: Language, default: Language.ENGLISH })
   language!: Language;
+
+  @Column({ type: 'enum', enum: Type })
+  type!: Type;
 
   @Column({ type: 'int', default: 0 })
   failureCount!: number;

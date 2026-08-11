@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { User } from './user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
+import { PushSubscription } from './push-subscription.entity';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { JwtStrategy } from './jwt.strategy';
         },
       }),
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, PushSubscription]),
   ],
   providers: [JwtStrategy, AuthService],
   exports: [JwtStrategy, PassportModule, TypeOrmModule, AuthService],

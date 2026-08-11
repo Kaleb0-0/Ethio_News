@@ -41,3 +41,13 @@ export const updateLanguage = async (lang: "eng" | "amh") => {
   const { data } = await api.patch(`/auth/${lang}`);
   return data;
 };
+
+export const toggleNotifications = async () => {
+  const { data } = await api.patch("/auth/notifications");
+  return data;
+};
+
+export const getMe = async () => {
+  const { data } = await api.get("/auth/me");
+  return data;
+};

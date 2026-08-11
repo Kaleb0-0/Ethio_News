@@ -6,6 +6,7 @@ import { SummarizationService } from '../summarization/summarization.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article, ArticleStatus } from '../articles/entities/article.entity';
 import { Repository } from 'typeorm';
+import { FreeNewsService } from './free-news.service';
 
 @Injectable()
 export class IngestionService {
@@ -17,6 +18,7 @@ export class IngestionService {
     private readonly articleRepository: Repository<Article>,
     private readonly articlesService: ArticlesService,
     private readonly summarizationService: SummarizationService,
+    private readonly freeNewsService: FreeNewsService,
   ) {
     this.parser = new Parser({
       headers: {
@@ -144,6 +146,16 @@ export class IngestionService {
         this.logger.error(`Failed to fetch ${source.name}: ${error.message}`);
         await this.articlesService.handleSourceFailure(source.id);
       }
+    }
+
+    const freeResult = await this.freeNewsService.fetchAndSaveFreeNews();
+    newArticlesCount += freeResult.newArticlesSaved;
+    if (!freeResult.success) {
+      this.logger.warn(
+        `Free news API fetch completed with errors: ${freeResult.errors.join(
+          ' | ',
+        )}`,
+      );
     }
 
     this.logger.log(

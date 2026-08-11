@@ -1,10 +1,17 @@
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchArticles } from "../services/api";
-import { useEffect } from "react";
 
 export const useArticles = (category?: string, lang?: "eng" | "amh") => {
   const queryClient = useQueryClient();
   const queryKey = ["articles", category, lang] as const;
+  const isLangReady = lang === "eng" || lang === "amh";
+
+  useEffect(() => {
+    if (!isLangReady) return;
+
+    queryClient.invalidateQueries({ queryKey: ["articles"], exact: false });
+  }, [category, lang, isLangReady, queryClient]);
 
   const getMsUntilNextRefetch = () => {
     const now = new Date();
@@ -14,10 +21,6 @@ export const useArticles = (category?: string, lang?: "eng" | "amh") => {
     return (minutesUntilNext * 60 - seconds) * 1000;
   };
 
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey, exact: true });
-  }, [category, lang]);
-
   const query = useQuery({
     queryKey,
     queryFn: () =>
@@ -25,9 +28,11 @@ export const useArticles = (category?: string, lang?: "eng" | "amh") => {
         category,
         lang,
       }),
-    staleTime: 60_000, //this would need to change for the since function
+    staleTime: 0,
+    refetchOnMount: "always",
     refetchOnWindowFocus: false,
     refetchInterval: getMsUntilNextRefetch,
+    enabled: isLangReady,
   });
 
   const refresh = async () => {

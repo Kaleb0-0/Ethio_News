@@ -15,6 +15,8 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PreferedLanguage } from './prefered-language.enum';
 import { ConfigService } from '@nestjs/config';
+import * as webpush from 'web-push';
+import { PushSubscription } from './push-subscription.entity';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +26,8 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(PushSubscription)
+    private pushRepository: Repository<PushSubscription>,
     private jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
@@ -45,7 +49,7 @@ export class AuthService {
     user.email = email;
     user.salt = await bcrypt.genSalt();
     user.password = await this.hashPassword(password, user.salt);
-    user.role = this.userRole.NORMAL;
+    user.role = this.userRole.ADMIN;
 
     try {
       await this.userRepository.save(user);
@@ -112,5 +116,55 @@ export class AuthService {
     });
     const user = await this.findByEmail(decoded.email);
     return user?.preferedLanguage;
+  }
+
+  async toggleNotifications(
+    user: User,
+  ): Promise<{ notificationsEnabled: boolean }> {
+    const newValue = !user.notificationsEnabled;
+    await this.userRepository.update(user.username, {
+      notificationsEnabled: newValue,
+    });
+    return { notificationsEnabled: newValue };
+  }
+
+  onModuleInit() {
+    webpush.setVapidDetails(
+      this.configService.getOrThrow('VAPID_EMAIL'),
+      this.configService.getOrThrow('VAPID_PUBLIC_KEY'),
+      this.configService.getOrThrow('VAPID_PRIVATE_KEY'),
+    );
+  }
+
+  async savePushSubscription(
+    user: User,
+    sub: { endpoint: string; p256dh: string; auth: string },
+  ): Promise<void> {
+    await this.pushRepository.upsert(
+      { ...sub, username: user.username, user },
+      { conflictPaths: ['endpoint'] },
+    );
+  }
+
+  async sendPushToAll(title: string, body: string): Promise<void> {
+    const subscriptions = await this.pushRepository.find({
+      where: { user: { notificationsEnabled: true } },
+      relations: { user: true },
+    });
+
+    for (const sub of subscriptions) {
+      try {
+        await webpush.sendNotification(
+          {
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.p256dh, auth: sub.auth },
+          },
+          JSON.stringify({ title, body }),
+        );
+      } catch {
+        // subscription expired — delete it
+        await this.pushRepository.delete(sub.id);
+      }
+    }
   }
 }

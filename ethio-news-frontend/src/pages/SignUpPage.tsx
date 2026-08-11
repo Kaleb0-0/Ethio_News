@@ -53,7 +53,6 @@ const SignUpPage = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="johndoe"
-              required
               className="w-full bg-[#0f172a] border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#38bdf8] transition"
             />
           </div>

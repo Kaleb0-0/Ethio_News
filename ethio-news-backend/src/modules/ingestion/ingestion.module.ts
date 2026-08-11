@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { IngestionService } from './ingestion.service';
+import { FreeNewsService } from './free-news.service';
 import { IngestionController } from './ingestion.controller';
 import { ArticlesModule } from '../articles/articles.module';
 import { SummarizationModule } from '../summarization/summarization.module';
@@ -18,7 +19,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule,
     TypeOrmModule.forFeature([Article]),
   ],
-  providers: [IngestionService],
+  providers: [IngestionService, FreeNewsService],
   controllers: [IngestionController],
 })
 export class IngestionModule {}

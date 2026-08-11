@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   ParseEnumPipe,
   Patch,
@@ -30,6 +31,33 @@ export class AuthController {
     @Body(ValidationPipe) signInCredentialsDto: SignInCredentialsDto,
   ): Promise<{ accessToken: string }> {
     return this.authService.signIn(signInCredentialsDto);
+  }
+
+  @Patch('notifications')
+  @UseGuards(AuthGuard())
+  async toggleNotifications(@GetUser() user: User) {
+    return this.authService.toggleNotifications(user);
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard())
+  async getMe(@GetUser() user: User) {
+    return {
+      email: user.email,
+      username: user.username,
+      preferedLanguage: user.preferedLanguage,
+      notificationsEnabled: user.notificationsEnabled,
+    };
+  }
+
+  @Post('push-subscription')
+  @UseGuards(AuthGuard())
+  async savePushSubscription(
+    @GetUser() user: User,
+    @Body() body: { endpoint: string; p256dh: string; auth: string },
+  ) {
+    await this.authService.savePushSubscription(user, body);
+    return { success: true };
   }
 
   @Patch(':lang')
