@@ -49,7 +49,7 @@ export class AuthService {
     user.email = email;
     user.salt = await bcrypt.genSalt();
     user.password = await this.hashPassword(password, user.salt);
-    user.role = this.userRole.ADMIN;
+    user.role = this.userRole.NORMAL;
 
     try {
       await this.userRepository.save(user);

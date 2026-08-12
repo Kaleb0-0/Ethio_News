@@ -14,13 +14,13 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: 'http://localhost:5173', // React app
+    origin: 'http://localhost:8080', // React app
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
   });
 
   app.setGlobalPrefix('api');
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();

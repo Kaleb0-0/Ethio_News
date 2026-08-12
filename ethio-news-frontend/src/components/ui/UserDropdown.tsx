@@ -1,4 +1,4 @@
-import { ChevronRight, Globe, LogOut, Bell, BellOff } from "lucide-react";
+import { ChevronRight, LogOut, Bell, BellOff } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "../../services/api";
@@ -10,8 +10,11 @@ interface UserDropdownProps {
   onLangChange: (lang: "eng" | "amh") => void;
 }
 
-const UserDropdown = ({ onClose, lang, onLangChange }: UserDropdownProps) => {
-  const [langOpen, setLangOpen] = useState(false);
+const UserDropdown = ({
+  onClose,
+  // lang, onLangChange
+}: UserDropdownProps) => {
+  // const [langOpen, setLangOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -101,7 +104,7 @@ const UserDropdown = ({ onClose, lang, onLangChange }: UserDropdownProps) => {
         <button
           onClick={() => {
             setNotifOpen(!notifOpen);
-            setLangOpen(false);
+            // setLangOpen(false);
           }}
           className="w-full flex items-center justify-between px-4 py-2.5 text-slate-300 hover:bg-slate-700 hover:text-white transition text-sm"
         >
