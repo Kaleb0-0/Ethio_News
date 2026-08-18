@@ -16,35 +16,37 @@ export class SummarizationService {
 
   async summarizeArticle(rawContent: string, title: string) {
     const prompt = `
-      You are an Ethiopian news analyst. Analyze the article below and respond ONLY with a valid JSON object, no markdown, no extra text.
+You are an Ethiopian news analyst. Analyze the article below and respond ONLY with a valid JSON object. No markdown, no code fences, no extra text before or after the JSON.
 
-      Title: ${title}
-      Content: ${rawContent}
+Title: ${title}
+Content: ${rawContent}
 
-      Respond with this exact structure:
-      {
-        "headline": "A clear English headline",
-        "headlineAmharic": "ዜና ርዕስ በአማርኛ",
-        "summary": ["English bullet 1", "English bullet 2", "English bullet 3"],
-        "summaryAmharic": ["አማርኛ ነጥብ 1", "አማርኛ ነጥብ 2", "አማርኛ ነጥብ 3"],
-        "category": "Politics | Business | Sports | Health | Technology | Culture",
-        "categoryAmharic": "ፖለቲካ | ቢዝነስ | ስፖርት | ጤና | ቴክኖሎጂ | ባህል",
-        "keyEntities": ["names of people, places, or organizations mentioned"],
-        "detectedLanguage": "amharic or english",
-        "translatedToEnglish": true or false
-      }`;
+Respond with exactly this JSON structure:
+{
+  "headline": "A clear English headline",
+  "headlineAmharic": "ዜና ርዕስ በአማርኛ",
+  "summary": ["English bullet 1", "English bullet 2", "English bullet 3"],
+  "summaryAmharic": ["አማርኛ ነጥብ 1", "አማርኛ ነጥብ 2", "አማርኛ ነጥብ 3"],
+  "category": "Politics | Business | Sports | Health | Technology | Culture",
+  "categoryAmharic": "ፖለቲካ | ቢዝነስ | ስፖርት | ጤና | ቴክኖሎጂ | ባህል",
+  "keyEntities": ["names of people, places, or organizations mentioned"],
+  "detectedLanguage": "amharic or english",
+  "translatedToEnglish": true or false
+}`;
 
     try {
       const completion = await this.client.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: 'openai/gpt-oss-20b',
         messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' }, // clean JSON, no markdown fences needed
+        // removed response_format
       });
 
       const text = completion.choices[0].message.content || '';
-      const parsed = JSON.parse(text);
+      this.logger.log(`Raw response: ${text}`); // add this
+      // strip markdown fences if model wraps response
+      const clean = text.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
 
-      // split the pipe-separated string into an array
       const splitCategory = (value: any): string[] => {
         if (Array.isArray(value)) return value;
         if (typeof value === 'string') {
@@ -72,6 +74,7 @@ export class SummarizationService {
       };
     } catch (error: any) {
       this.logger.error(`Summarization failed: ${error.message}`);
+      this.logger.error(`Full error: ${JSON.stringify(error)}`);
       return null;
     }
   }

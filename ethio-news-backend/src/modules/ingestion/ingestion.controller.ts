@@ -111,4 +111,11 @@ export class IngestionController {
   async clearSources() {
     return this.ingestionService.clearSources();
   }
+
+  @Post('reset-failed')
+  @UseGuards(AuthGuard())
+  async resetFailed(@GetUser() user: User) {
+    if (user.role !== UserRole.ADMIN) throw new UnauthorizedException();
+    return this.articlesService.resetFailedArticles();
+  }
 }

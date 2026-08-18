@@ -190,4 +190,12 @@ export class ArticlesService {
   async clearAllSources(): Promise<void> {
     await this.sourceRepository.query('TRUNCATE TABLE "sources" CASCADE');
   }
+
+  async resetFailedArticles(): Promise<{ reset: number }> {
+    const result = await this.articleRepository.update(
+      { status: ArticleStatus.FAILED },
+      { status: ArticleStatus.PENDING },
+    );
+    return { reset: result.affected || 0 };
+  }
 }
