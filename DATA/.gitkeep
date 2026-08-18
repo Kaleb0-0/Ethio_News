@@ -1,0 +1,9 @@
+# Data directory for persistent volumes
+# This directory contains:
+# - db_data: PostgreSQL database data
+# - db_backups: Database backups
+# - redis_data: Redis persistent storage
+# - nginx_logs: Nginx access and error logs
+# - certs: SSL certificates (for production)
+
+# Keep this directory in .gitignore - it contains local/persistent data

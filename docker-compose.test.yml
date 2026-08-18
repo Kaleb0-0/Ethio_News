@@ -1,0 +1,50 @@
+# Testing overrides for docker-compose.yml
+# Run with: docker compose -f docker-compose.yml -f docker-compose.test.yml --env-file ./ethio-news-backend/env/.env.test up --build
+
+services:
+  backend:
+    volumes:
+      - ./ethio-news-backend/src:/app/src
+    environment:
+      DEBUG: "false"
+      LOG_LEVEL: "info"
+      NODE_ENV: "test"
+    ports:
+      - "3000:3000"
+    command: npm run test
+
+  frontend:
+    # Test environment doesn't expose frontend to host
+    volumes:
+      - ./ethio-news-frontend/src:/app/src
+    environment:
+      VITE_API_URL: "http://backend:3000/api"
+      NODE_ENV: "test"
+    # Don't expose ports in test mode
+    command: npm run test
+
+  postgres:
+    # Isolated test database
+    restart: no
+    environment:
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    # Cleanup after tests
+    entrypoint: |
+      sh -c 'exec docker-entrypoint.sh postgres & sleep 10; psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c "CREATE SCHEMA IF NOT EXISTS test;" & wait'
+
+  redis:
+    restart: no
+    # No persistence in test mode
+    command: redis-server --save ""
+
+  nginx:
+    # Minimal nginx config for testing
+    depends_on:
+      - backend
+    restart: no
+    # Don't expose Nginx to host
+    ports: []
+
+volumes:
+  postgres_data:
+  redis_data:

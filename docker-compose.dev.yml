@@ -1,0 +1,57 @@
+# Development overrides for docker-compose.yml
+# Run with: docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file ./ethio-news-backend/env/development.env up --build
+
+services:
+  backend:
+    # Mount source code for hot reload
+    volumes:
+      - ./ethio-news-backend/src:/app/src
+    environment:
+      # Development-specific settings
+      DEBUG: "true"
+      LOG_LEVEL: "debug"
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Node debugging port
+    command: npm run start:dev
+
+  frontend:
+    build:
+      context: ./ethio-news-frontend
+      dockerfile: Dockerfile.dev
+    # Mount only source code, NOT node_modules (causes native binding issues with Alpine)
+    volumes:
+      - ./ethio-news-frontend/src:/app/src
+    environment:
+      VITE_API_URL: "http://localhost:3000/api"
+    ports:
+      - "5173:5173"
+
+  postgres:
+    # Expose port for local debugging
+    ports:
+      - "5432:5432"
+    # Don't restart on failure in dev
+    restart: no
+    environment:
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8 --data-checksums"
+
+  redis:
+    # Expose port for local debugging
+    ports:
+      - "6379:6379"
+    restart: no
+
+  nginx:
+    # Don't require healthy backend/frontend in dev (they might be restarting)
+    depends_on:
+      - backend
+      - frontend
+    restart: no
+    ports:
+      - "80:80"
+
+# Development-specific volumes (if needed)
+volumes:
+  postgres_data:
+  redis_data:
