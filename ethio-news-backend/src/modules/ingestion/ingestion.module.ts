@@ -9,6 +9,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Article } from '../articles/entities/article.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
+import { QUEUES } from '../common/constants/queues';
+import { IngestionProcessor } from './ingestion.processor';
 
 @Module({
   imports: [
@@ -17,9 +20,13 @@ import { ConfigModule } from '@nestjs/config';
     AuthModule,
     JwtModule,
     ConfigModule,
+    BullModule.registerQueue(
+      { name: QUEUES.INGESTION },
+      { name: QUEUES.SUMMARIZATION },
+    ),
     TypeOrmModule.forFeature([Article]),
   ],
-  providers: [IngestionService, FreeNewsService],
+  providers: [IngestionService, FreeNewsService, IngestionProcessor],
   controllers: [IngestionController],
 })
 export class IngestionModule {}

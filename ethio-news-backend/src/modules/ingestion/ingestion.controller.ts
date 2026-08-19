@@ -62,15 +62,15 @@ export class IngestionController {
   }
 
   // ingestion.controller.ts
-  @Post('summarize')
-  @UseGuards(AuthGuard())
-  async triggerSummarization(@GetUser() user: User) {
-    if (user.role === UserRole.ADMIN) {
-      return this.ingestionService.processPendingSummaries();
-    } else {
-      throw new UnauthorizedException();
-    }
-  }
+  // @Post('summarize')
+  // @UseGuards(AuthGuard())
+  // async triggerSummarization(@GetUser() user: User) {
+  //   if (user.role === UserRole.ADMIN) {
+  //     return this.ingestionService.fetchAndSaveNews();
+  //   } else {
+  //     throw new UnauthorizedException();
+  //   }
+  // }
 
   // @Get('completed')
   // async getCompleted() {

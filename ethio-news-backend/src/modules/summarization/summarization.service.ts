@@ -15,11 +15,12 @@ export class SummarizationService {
   }
 
   async summarizeArticle(rawContent: string, title: string) {
+    const truncatedContent = rawContent.slice(0, 1500);
     const prompt = `
 You are an Ethiopian news analyst. Analyze the article below and respond ONLY with a valid JSON object. No markdown, no code fences, no extra text before or after the JSON.
 
 Title: ${title}
-Content: ${rawContent}
+Content: ${truncatedContent}
 
 Respond with exactly this JSON structure:
 {
@@ -42,7 +43,7 @@ Respond with exactly this JSON structure:
       });
 
       const text = completion.choices[0].message.content || '';
-      this.logger.log(`Raw response: ${text}`); // add this
+      // this.logger.log(`Raw response: ${text}`); // add this
       // strip markdown fences if model wraps response
       const clean = text.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(clean);

@@ -8,11 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Source, Article, User]),
-    AuthModule,
-    JwtModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Source, Article, User])],
   providers: [ArticlesService],
   exports: [ArticlesService, TypeOrmModule],
 })
