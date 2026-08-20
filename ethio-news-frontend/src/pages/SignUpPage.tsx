@@ -23,7 +23,7 @@ const SignUpPage = () => {
     setLoading(true);
     try {
       await signUp(username, email, password);
-      navigate("/signin");
+      navigate("/feed");
     } catch (err: any) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {

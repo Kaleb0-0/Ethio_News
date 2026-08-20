@@ -32,7 +32,9 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async signUp(signUpCredentialsDto: SignUpCredentialsDto): Promise<void> {
+  async signUp(
+    signUpCredentialsDto: SignUpCredentialsDto,
+  ): Promise<{ accessToken: string }> {
     let { username, email, password } = signUpCredentialsDto;
 
     //check if username exist and if not create a username
@@ -49,10 +51,11 @@ export class AuthService {
     user.email = email;
     user.salt = await bcrypt.genSalt();
     user.password = await this.hashPassword(password, user.salt);
-    user.role = this.userRole.ADMIN;
+    user.role = this.userRole.NORMAL;
 
     try {
       await this.userRepository.save(user);
+      return this.signIn({ email, password });
     } catch (error: any) {
       //log error
       if (error?.code === '23505') {

@@ -24,6 +24,7 @@ export const fetchArticles = async (params: { category?: string; since?: string;
 // --- Auth ---
 export const signUp = async (username: string | null, email: string, password: string) => {
   const { data } = await api.post("/auth/signUp", { username, email, password });
+  localStorage.setItem("token", data.accessToken);
   return data;
 };
 

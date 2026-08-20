@@ -22,7 +22,7 @@ export class AuthController {
   @Post('/signUp')
   signUp(
     @Body(ValidationPipe) signUpCredentialsDto: SignUpCredentialsDto,
-  ): Promise<void> {
+  ): Promise<{ accessToken: string }> {
     return this.authService.signUp(signUpCredentialsDto);
   }
 
