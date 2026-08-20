@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import type { Article } from "../types/articles";
 import { useArticles } from "../hooks/useArticles";
 import Navbar from "../components/layout/Navbar";
-import { toEthiopianDate } from "../util/ethiopianDate";
 import CategoryTabs from "../components/news/CategoryTabs";
 import ArticleCard from "../components/news/ArticleCard";
 import { getMe } from "../services/api";
