@@ -61,15 +61,9 @@ export class ArticlesService {
 
   // get articles waiting to be summarized
   async getUnsummarizedArticles(): Promise<Article[]> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const tomorrow = new Date();
-    tomorrow.setHours(23, 59, 59, 999);
     return this.articleRepository.find({
       where: {
         status: ArticleStatus.PENDING,
-        pubDate: Between(today, tomorrow),
       },
       take: 50,
     });
@@ -102,17 +96,12 @@ export class ArticlesService {
     language: PreferedLanguage,
     category?: string,
     since?: string,
+    take: number = 15,
+    skip: number = 0,
   ) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // start of today midnight
-
-    const tomorrow = new Date();
-    tomorrow.setHours(23, 59, 59, 999); // end of today
-
     const articles = await this.articleRepository.find({
       where: {
         status: ArticleStatus.COMPLETED,
-        pubDate: Between(today, tomorrow),
         ...(category && { category: ArrayContains([category]) }),
         ...(since && { summarizedAt: MoreThan(new Date(since)) }),
       },
@@ -132,7 +121,8 @@ export class ArticlesService {
         imageUrl: true,
       },
       order: { pubDate: 'DESC' },
-      take: 50,
+      take,
+      skip,
     });
 
     // shape response based on language

@@ -16,7 +16,7 @@ api.interceptors.request.use((config) => {
 });
 
 // --- Articles ---
-export const fetchArticles = async (params: { category?: string; since?: string; lang?: "eng" | "amh" }) => {
+export const fetchArticles = async (params: { category?: string; since?: string; lang?: "eng" | "amh"; take?: number; skip?: number }) => {
   const { data } = await api.get("/ingestion", { params });
   return data;
 };

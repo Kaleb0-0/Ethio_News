@@ -43,7 +43,7 @@ const FeedPage = () => {
 const FeedContent = ({ lang, setLang, isLoggedIn }: { lang: "eng" | "amh"; setLang: (lang: "eng" | "amh") => void; isLoggedIn: boolean }) => {
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  const { data: articles, isLoading, error, refresh } = useArticles(category, lang);
+  const { data: articles, isLoading, hasMore, loadMore, error, refresh } = useArticles(category, lang);
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
@@ -51,18 +51,7 @@ const FeedContent = ({ lang, setLang, isLoggedIn }: { lang: "eng" | "amh"; setLa
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="mb-4">
-          <h1 className="text-xl font-bold text-white">
-            {lang === "eng" ? "Today's News" : "የዛሬ ዜናዎች"}
-            <span className="text-slate-500 text-sm font-normal ml-2">
-              {lang === "eng"
-                ? new Date().toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                  })
-                : toEthiopianDate(new Date())}
-            </span>
-          </h1>
+          <h1 className="text-xl font-bold text-white">{lang === "eng" ? "Latest News" : "የቅርብ ዜናዎች"}</h1>
         </div>
 
         <div className="mb-6">
@@ -151,6 +140,19 @@ const FeedContent = ({ lang, setLang, isLoggedIn }: { lang: "eng" | "amh"; setLa
           </div>
         </div>
       )}
+      {hasMore && (
+        <div className="flex justify-center mt-8 mb-4">
+          <button
+            onClick={loadMore}
+            disabled={isLoading}
+            className="px-8 py-2.5 border border-slate-600 text-slate-300 rounded-full hover:border-[#38bdf8] hover:text-[#38bdf8] transition disabled:opacity-50"
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
+
+      {!hasMore && articles.length > 0 && <p className="text-center text-slate-600 text-sm mt-8 mb-4">You've reached the end</p>}
     </div>
   );
 };

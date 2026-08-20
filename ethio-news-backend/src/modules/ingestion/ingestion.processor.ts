@@ -55,14 +55,6 @@ export class IngestionProcessor extends WorkerHost {
           const pubDate = item.pubDate ? new Date(item.pubDate) : null;
           if (!pubDate || isNaN(pubDate.getTime())) continue;
 
-          const today = new Date();
-          const isToday =
-            pubDate.getDate() === today.getDate() &&
-            pubDate.getMonth() === today.getMonth() &&
-            pubDate.getFullYear() === today.getFullYear();
-
-          if (!isToday) break;
-
           const exists = await this.articlesService.articleExists(sourceUrl);
           if (!exists) {
             const article = await this.articlesService.createArticle({

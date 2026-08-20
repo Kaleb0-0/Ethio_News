@@ -1,17 +1,19 @@
-import { useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { fetchArticles } from "../services/api";
+import { type Article } from "../types/articles";
+
+const TAKE = 15;
 
 export const useArticles = (category?: string, lang?: "eng" | "amh") => {
   const queryClient = useQueryClient();
-  const queryKey = ["articles", category, lang] as const;
   const isLangReady = lang === "eng" || lang === "amh";
 
-  useEffect(() => {
-    if (!isLangReady) return;
-
-    queryClient.invalidateQueries({ queryKey: ["articles"], exact: false });
-  }, [category, lang, isLangReady, queryClient]);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [skip, setSkip] = useState(0);
 
   const getMsUntilNextRefetch = () => {
     const now = new Date();
@@ -21,26 +23,69 @@ export const useArticles = (category?: string, lang?: "eng" | "amh") => {
     return (minutesUntilNext * 60 - seconds) * 1000;
   };
 
-  const query = useQuery({
-    queryKey,
-    queryFn: () =>
-      fetchArticles({
-        category,
-        lang,
-      }),
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: false,
-    refetchInterval: getMsUntilNextRefetch,
-    enabled: isLangReady,
-  });
+  const fetch = useCallback(
+    async (reset = false) => {
+      if (!isLangReady) return;
+      setIsLoading(true);
+      setError(null);
+
+      const currentSkip = reset ? 0 : skip;
+
+      try {
+        const data = await fetchArticles({
+          category,
+          lang,
+          take: TAKE,
+          skip: currentSkip,
+        });
+
+        if (reset) {
+          setArticles(data);
+          setSkip(TAKE);
+        } else {
+          setArticles((prev) => [...prev, ...data]);
+          setSkip(currentSkip + TAKE);
+        }
+
+        setHasMore(data.length === TAKE);
+      } catch (err: any) {
+        setError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [category, lang, skip, isLangReady],
+  );
+
+  // refetch when category or lang changes
+  useEffect(() => {
+    if (!isLangReady) return;
+    fetch(true); // reset articles list
+  }, [category, lang, isLangReady]);
+
+  // auto refetch at :10 every hour
+  useEffect(() => {
+    if (!isLangReady) return;
+    const ms = getMsUntilNextRefetch();
+    const timer = setTimeout(() => {
+      fetch(true); // reset and refetch fresh
+    }, ms);
+    return () => clearTimeout(timer);
+  }, [isLangReady, articles]);
+
+  const loadMore = () => fetch(false);
 
   const refresh = async () => {
-    await queryClient.invalidateQueries({ queryKey, exact: true });
+    queryClient.removeQueries({ queryKey: ["articles"] });
+    await fetch(true);
   };
 
   return {
-    ...query,
+    data: articles,
+    isLoading,
+    error,
+    hasMore,
+    loadMore,
     refresh,
   };
 };

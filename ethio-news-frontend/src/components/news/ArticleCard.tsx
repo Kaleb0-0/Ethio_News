@@ -8,7 +8,12 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = ({ article, onClick, featured = false, lang = "eng" }: ArticleCardProps) => {
-  const time = new Date(article.pubDate).toLocaleTimeString(lang === "eng" ? "en-US" : "am-ET", { hour: "2-digit", minute: "2-digit" });
+  const dateTime = new Date(article.pubDate).toLocaleDateString(lang === "eng" ? "en-US" : "en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   if (featured) {
     return (
@@ -36,7 +41,7 @@ const ArticleCard = ({ article, onClick, featured = false, lang = "eng" }: Artic
                 </li>
               ))}
             </ul>
-            <span className="text-slate-600 text-xs">{time}</span>
+            <span className="text-slate-600 text-xs">{dateTime}</span>
           </div>
         </div>
       </div>
@@ -58,7 +63,7 @@ const ArticleCard = ({ article, onClick, featured = false, lang = "eng" }: Artic
           <h3 className="text-white font-semibold text-base leading-snug group-hover:text-[#38bdf8] transition line-clamp-2">{article.headline || article.title}</h3>
           <p className="text-slate-500 text-sm mt-1 line-clamp-1">{article.summary?.[0]}</p>
         </div>
-        <span className="text-slate-600 text-xs mt-2">{time}</span>
+        <span className="text-slate-600 text-xs mt-2">{dateTime}</span>
       </div>
 
       {/* Thumbnail */}

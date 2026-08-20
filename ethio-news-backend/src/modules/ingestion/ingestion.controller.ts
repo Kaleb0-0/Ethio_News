@@ -83,10 +83,12 @@ export class IngestionController {
     // @GetUser() user: User,
     @Query('category') category?: string,
     @Query('since') since?: string,
-    @Query('lang') lang?: PreferedLanguage, // fallback for unauthenticated users
+    @Query('lang') lang?: PreferedLanguage,
+    @Query('take') take?: string,
+    @Query('skip') skip?: string,
     @Req() req?: any,
   ) {
-    let language: PreferedLanguage = lang || PreferedLanguage.ENG; // default to English
+    let language: PreferedLanguage = lang || PreferedLanguage.ENG;
 
     // if user is logged in and no explicit lang param was provided, use their preferred language
     if (!lang) {
