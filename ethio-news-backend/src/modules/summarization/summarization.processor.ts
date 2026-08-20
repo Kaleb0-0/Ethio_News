@@ -37,6 +37,7 @@ export class SummarizationProcessor extends WorkerHost {
   }
 
   private async handleSummarize(articleId: string) {
+    await new Promise((resolve) => setTimeout(resolve, 10000));
     const article = await this.articleRepository.findOne({
       where: { id: articleId },
     });
